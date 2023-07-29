@@ -22,6 +22,8 @@ public class TwitchTest : MonoBehaviour
     public int speed;
     public string broadcaster_id;
 
+    public TwitchApiCallHelper twitchApi;
+
     void Start()
     {
         Connect();
@@ -33,10 +35,6 @@ public class TwitchTest : MonoBehaviour
         {
             Connect();
         }
-        else
-        {
-            chatBox.SetText("Connected!");
-        }
 
         //ReadChat();
 
@@ -45,12 +43,14 @@ public class TwitchTest : MonoBehaviour
             StartCoroutine(FillAndSend());
         }
 
+        if (Input.GetKeyDown(KeyCode.T))
+        {
+           chatBox.text =   twitchApi.CallApi("https://api.twitch.tv/helix/channels");
+        }
+
         if (Input.GetKeyDown(KeyCode.R))
         {
-            reader = new StreamReader(twitchClient.GetStream());
-
-            chatBox.text = reader.ReadToEnd();
-
+            chatBox.SetText("none");
             errorBox.SetText("none");
         }
     }
@@ -61,8 +61,6 @@ public class TwitchTest : MonoBehaviour
 
         form.AddField("AppName", "Testttt");
         form.AddField("AppUser", "Reinnn");
-
-
 
         //UnityWebRequest www = UnityWebRequest.Post("https://api.twitch.tv/helix/channels", form);
         //www.SetRequestHeader("broadcaster_id", "codicepazzo");
