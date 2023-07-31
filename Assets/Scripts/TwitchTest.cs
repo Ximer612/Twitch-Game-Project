@@ -10,42 +10,26 @@ using UnityEngine.Networking;
 
 public class TwitchTest : MonoBehaviour
 {
-
-    private TcpClient twitchClient;
-    private StreamReader reader;
-    private StreamWriter writer;
-
-    public string username, password, channelName; //Get the password from https://twitchapps.com/tmi
+    //private TcpClient twitchClient;
+    //private StreamReader reader;
+    //private StreamWriter writer;
 
     public TMPro.TMP_Text chatBox, errorBox;
-    public Rigidbody player;
-    public int speed;
-    public string broadcaster_id;
-
-    public TwitchApiCallHelper twitchApi;
-
-    void Start()
-    {
-        Connect();
-    }
+    public string url;
 
     void Update()
     {
-        if (!twitchClient.Connected)
-        {
-            Connect();
-        }
+
+        //if (Input.GetKeyDown(KeyCode.C))
+        //{
+        //    Connect();
+        //}
 
         //ReadChat();
 
-        if (Input.GetKeyDown(KeyCode.K))
+        if (Input.GetKeyDown(KeyCode.Q))
         {
-            StartCoroutine(FillAndSend());
-        }
-
-        if (Input.GetKeyDown(KeyCode.T))
-        {
-           chatBox.text =   twitchApi.CallApi("https://api.twitch.tv/helix/channels");
+            StartCoroutine(SendRequest());
         }
 
         if (Input.GetKeyDown(KeyCode.R))
@@ -55,16 +39,11 @@ public class TwitchTest : MonoBehaviour
         }
     }
 
-    public IEnumerator FillAndSend()
+    public IEnumerator SendRequest()
     {
-        WWWForm form = new WWWForm();
-
-        form.AddField("AppName", "Testttt");
-        form.AddField("AppUser", "Reinnn");
-
-        //UnityWebRequest www = UnityWebRequest.Post("https://api.twitch.tv/helix/channels", form);
-        //www.SetRequestHeader("broadcaster_id", "codicepazzo");
-        UnityWebRequest www = UnityWebRequest.Get("https://api.twitch.tv/helix/channels?broadcaster_id=141981764");
+        UnityWebRequest www = UnityWebRequest.Get(url + "?" + "broadcaster_id=" + Secrets.CHANNEL_ID_FROM_OAUTH_TOKEN);
+        www.SetRequestHeader("Client-ID", Secrets.ClientID);
+        www.SetRequestHeader("Authorization", "Bearer lciles9dnn5p383x9oulolzwjfqj1n");
 
         yield return www.SendWebRequest();
         if (www.isNetworkError || www.isHttpError)
@@ -77,66 +56,21 @@ public class TwitchTest : MonoBehaviour
         }
 
         chatBox.SetText(www.result.ToString());
-        //chatBox.SetText(form.data.ToString());
     }
 
-    private void Connect()
-    {
-        twitchClient = new TcpClient("irc.chat.twitch.tv", 6667);
+    //private void Connect()
+    //{
+    //    twitchClient = new TcpClient("irc.chat.twitch.tv", 6667);
 
-        reader = new StreamReader(twitchClient.GetStream());
-        writer = new StreamWriter(twitchClient.GetStream());
+    //    reader = new StreamReader(twitchClient.GetStream());
+    //    writer = new StreamWriter(twitchClient.GetStream());
 
-        writer.WriteLine("PASS " + password);
-        writer.WriteLine("NICK " + username);
-        writer.WriteLine("USER " + username + " 8 * :" + username);
-        writer.WriteLine("JOIN #" + channelName);
+    //    writer.WriteLine("PASS " + password);
+    //    writer.WriteLine("NICK " + username);
+    //    writer.WriteLine("USER " + username + " 8 * :" + username);
+    //    writer.WriteLine("JOIN #" + channelName);
 
-        writer.Flush();
-    }
+    //    writer.Flush();
+    //}
 
-    private void ReadChat()
-    {
-        if (twitchClient.Available > 0)
-        {
-            var message = reader.ReadLine(); //Read in the current message
-
-            chatBox.SetText(message);
-
-            if (message.Contains("PRIVMSG"))
-            {
-                //Get the users name by splitting it from the string
-                var splitPoint = message.IndexOf("!", 1);
-                var chatName = message.Substring(0, splitPoint);
-                chatName = chatName.Substring(1);
-
-                //Get the users message by splitting it from the string
-                splitPoint = message.IndexOf(":", 1);
-                message = message.Substring(splitPoint + 1);
-                //print(String.Format("{0}: {1}", chatName, message));
-                chatBox.text = chatBox.text + "\n" + String.Format("{0}: {1}", chatName, message);
-
-                //Run the instructions to control the game!
-                GameInputs(message);
-            }
-        }
-    }
-
-    private void GameInputs(string ChatInputs)
-    {
-        if (ChatInputs.ToLower() == "left")
-        {
-            player.AddForce(Vector3.left * (speed * 10));
-        }
-
-        if (ChatInputs.ToLower() == "right")
-        {
-            player.AddForce(Vector3.right * (speed * 10));
-        }
-
-        if (ChatInputs.ToLower() == "forward")
-        {
-            player.AddForce(Vector3.forward * (speed * 10));
-        }
-    }
 }
